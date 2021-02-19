@@ -1,0 +1,28 @@
+{
+    "NODE_APP_NAME": "AWB-ChatBot-NODE",
+    "NODE_PORT": 3000,
+    "NODE_HOST": "127.0.0.1",
+
+    "ConsoleLogLevel": "verbose",
+    "jsonLogFile": "/var/www/vnode/psdev-awb-chatbot-proxy/chatbot-proxy.log",
+    "jsonLogLevel": "debug",
+    
+    "IWA_serviceURL": "https://api.eu-de.assistant.watson.cloud.ibm.com",
+    "IWA_assistantId": "{{assistantId}}",
+    "IWA_apiKey": "{{ibmCloud-apiKey}}",
+    "IWA_instancePath": "instances/{{instancePath}}",
+    "IWA_apiVersion": "2020-04-01",
+    "IWA_sessionTimeout": 300,
+
+    "BIP_AccountId": "{{accountId}}",
+    "BIP_AccountName": "Infobip Morocco",
+    "BIP_serviceURL": "https://api.infobip.com",
+    "BIP_authorization": "App {{Infobip-apiKey}}",
+    "BIP_botName_LC": "{{botName-LiveChat}}",
+    "BIP_botName_WA": "{{botName-WhatsApp}}",
+    "BIP_SWA_KWord": "AWBTEST",
+
+    "debugFrom": "385971112233",
+    "debugWebHook": "https://webhook.site/b9eb2a61-c2f0-4510-b093-8002d709101e",
+    "debugLevel":  0
+}

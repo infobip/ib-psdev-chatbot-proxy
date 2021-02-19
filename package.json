@@ -1,0 +1,22 @@
+{
+  "name": "awb-chatbot-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "body-parser": "^1.19.0",
+    "circular-json": "^0.5.9",
+    "config": "^3.3.3",
+    "express": "^4.17.1",
+    "https": "^1.0.0",
+    "ibm-watson": "^5.7.3",
+    "randomstring": "^1.1.5",
+    "winston": "^3.3.3"
+  }
+}
