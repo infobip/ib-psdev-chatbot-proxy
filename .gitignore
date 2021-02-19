@@ -1,0 +1,12 @@
+config/local.json
+config/production.json
+node_modules
+build
+npm-debug.log
+*.log
+.env
+.DS_Store
+package-lock.json
+tinker*.js
+*~
+.*~
