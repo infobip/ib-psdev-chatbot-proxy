@@ -1,12 +1,16 @@
 {
   "name": "awb-chatbot-proxy",
   "version": "1.0.0",
-  "description": "",
+  "description": "Infobip PSDev project for AWB titled Chatbot Proxy",
   "main": "proxy.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/infobip/psdev-awb-chatbot-proxy.git"
+  },
+  "author": "Damir Dzeko Antic <damir.dzekoantic@infobip.com>>",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
