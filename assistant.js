@@ -35,44 +35,66 @@ const sessionTimeout = config.get('IWA_sessionTimeout');
 
 // check for session_id for given conversationId
 // TODO: expiration is also checked
-function sessionLookup(conversationId) {
-    if (sessionsTable[conversationId] === undefined
-        || sessionsTable[conversationId] == null) 
-    {
+async function sessionLookup(conversationId) {
+    logger.debug(`sessionLookup: Here in sessionLookup for ${conversationId} ...`);
+    var was;
+    // check if we have it cached
+    if (sessionsTable.hasOwnProperty(conversationId)) {
+        was = sessionsTable[conversationId];
+        logger.debug(`sessionLookup: ===> found cached session object`);        
+    }
+    else {
+        logger.debug(`sessionLookup: ===> not having cached session object`);        
+        // try getting the value from the database
+        was = await database.get(conversationId);
+        if (was) {
+            logger.debug(`sessionLookup: Database lookup for ${conversationId} returned session record: `+JSON.stringify(was));
+            sessionsTable[conversationId] = was; // cache it
+        }
+        else {
+            logger.debug(`sessionLookup: ===> not having it in the database either`);        
+            // not in cache, not in database --> it is a fresh one: needs to go through createSession
+            return null;
+        }
+        
+    }
+    if (! was) {
         logger.debug(`sessionLookup: Conversation ${conversationId} was not found in our sessionsTable`);
         return null;
     }
-    const obj = sessionsTable[conversationId];
-    const sid = obj['session_id'];
+    const session_id = was['session_id'];
     // check expiry
     const now_time = new Date().getTime() / 1000;
-    if (now_time > obj['expiry']) {
+    if (now_time > was['expiry']) {
         sessionTerminate(conversationId);
-        logger.debug(`sessionLookup: Conversation ${conversationId} points to an expired session_id ${sid}`);
+        logger.debug(`sessionLookup: Conversation ${conversationId} points to an expired session_id ${session_id}`);
         return null;
     }
     else {
-        logger.debug(`sessionLookup: Conversation ${conversationId} found and session_id ${sid} can be resumed`);
-        return obj;
+        logger.debug(`sessionLookup: Conversation ${conversationId} found and session_id ${session_id} can be resumed`);
+        return was;
     }
 }
 
 function sessionTerminate(conversationId) {
-    delete sessionsTable[conversationId];
+    delete(sessionsTable[conversationId]);
+    database.delete(conversationId);
 }
 
 // extend expiration time on session activity
-function sessionExtendExpiry(conversationId) {
-    var exp_time = sessionTimeout + new Date().getTime() / 1000;
-    sessionsTable[conversationId]['expiry'] = exp_time;
+async function sessionExtendExpiry(conversationId) {
+    var new_exp_time = sessionTimeout + new Date().getTime() / 1000;
+    sessionsTable[conversationId]['expiry'] = new_exp_time;
+    // overwrite the existing object in the database
+    database.set(conversationId, sessionsTable[conversationId]);
     return sessionsTable[conversationId];
 }
 
 // this is just a placeholder for real func with DB backend
-function sessionCreate(conversationId, wasObj) {
+async function sessionCreate(conversationId, was) {
     var exp_time = sessionTimeout + new Date().getTime() / 1000;
-    wasObj['expiry'] = exp_time;
-    sessionsTable[conversationId] = wasObj;
+    was['expiry'] = exp_time;
+    sessionsTable[conversationId] = was;
     
     // the structure of the WAS object should be as following:
     // was = { 
@@ -81,19 +103,20 @@ function sessionCreate(conversationId, wasObj) {
     //         expiry :         exp_time
     //     };
 
-    database.set(conversationId, wasObj);
-    logger.debug(`sessionCreate: Session entry created for ${conversationId}: ` + JSON.stringify(wasObj));
-    return wasObj;
+    await database.set(conversationId, was);
+    logger.debug(`sessionCreate: Session entry created for ${conversationId}: ` + JSON.stringify(was));
+    return was;
 }
 
 // async function when called from another async fuction should block
 // until its result is ready e.g. promise yields resolve or reject
 async function assistant_createSession (conversationId, fromAddress) {
+    var was;
     logger.debug(`assistant_createSession: Session creation requested for conversation ${conversationId}`);
     await IWA_assistantV2.createSession( { assistantId: IWA_assistantId } )
     .then(async (res) => {
         const session_id     = res.result.session_id;
-        sessionCreate(conversationId, {
+        was = await sessionCreate(conversationId, {
             'session_id' : session_id,
             'fromAddress': fromAddress
         });
@@ -104,12 +127,13 @@ async function assistant_createSession (conversationId, fromAddress) {
         logger.error(`Failed in assistant_createSession() for conversation ${conversationId}: `, err);
         throw(Error(err));
     });
-    return sessionExtendExpiry(conversationId);    
+    sessionExtendExpiry(conversationId);
+    return was;
 }
 
 async function assistant_deleteSession (conversationId, session_id) {
     logger.debug(`assistant_deleteSession: Session deletion requested for conversation ${conversationId}`);
-    if (! session_id) { was = sessionLookup(conversationId); session_id = was.session_id }
+    if (! session_id) { var was = sessionLookup(conversationId); session_id = was.session_id }
     await IWA_assistantV2.deleteSession( { assistantId: IWA_assistantId, sessionId: session_id } )
     .then(async (res) => {
         sessionTerminate(conversationId);
@@ -126,13 +150,15 @@ async function assistant_deleteSession (conversationId, session_id) {
 async function assistant_exchangeMessage (ibMessageObj, textMsg) {
     const conversationId = ibMessageObj['conversationId']; 
     logger.debug(`assistant_exchangeMessage: Message from conversation ${conversationId} = '${textMsg}' queued for delivery to Watson`);
-    var was = sessionLookup(conversationId);
+    var was = await sessionLookup(conversationId);
+    logger.debug(`assistant_exchangeMessage: sessionLookup(${conversationId}) returned ${was}`);
     var result;
-    if (! was) {
+    if (! (was && was.hasOwnProperty('session_id'))) {
+        logger.debug(`assistant_exchangeMessage: calling assistant_createSession() for conversation ${conversationId}`);
         was = await assistant_createSession(conversationId, ibMessageObj.from);
     }
-    logger.debug(`got session object: ` + ( was ? JSON.stringify(was) : 'null'));
-    if (! was) {
+    logger.debug(`got session object: ${was} = ` + ( was ? JSON.stringify(was) : 'null'));
+    if (! (was && was.hasOwnProperty('session_id'))) {
         logger.debug(`cannot send witout a session`);
         return;
     }
@@ -148,7 +174,7 @@ async function assistant_exchangeMessage (ibMessageObj, textMsg) {
         result = res.result;
     })
     .catch((err) => {
-        logger.error(`Failed in assistant_createSession() for conversation ${conversationId}: `, err);
+        logger.error(`Failed in assistant_exchangeMessage() for conversation ${conversationId}: `, err);
         throw(Error(err));
     });
     return result;

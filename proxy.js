@@ -24,7 +24,7 @@ const { appName, appHost, appPort, logger, Step, bipHeaders,
 
 // IBM Watson Assistant related stuff:
 const { sessionLookup, sessionTerminate, assistant_exchangeMessage,
-    wat_serialize_options, wat_button_widget 
+    assistant_deleteSession, wat_serialize_options, wat_button_widget 
 } = require('./assistant');
 
 const appStartupTime = current_timestamp();
