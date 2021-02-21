@@ -3,8 +3,13 @@
 // process.env['NODE_CONFIG_DIR'] = __dirname + '/config/';
 const config   = require('config');
 
+const jsoning = require('jsoning');
+
 // our less decisive defs are moved here:
 const { logger, debugLevel } = require('./toolbox');
+
+// sessions persistence (FIXME: this is very lite and limited)
+const database = new jsoning(config.get("SDB_file"));
 
 const AssistantV2 = require('ibm-watson/assistant/v2');
 const { IamAuthenticator } = require('ibm-watson/auth');
@@ -76,20 +81,21 @@ function sessionCreate(conversationId, wasObj) {
     //         expiry :         exp_time
     //     };
 
+    database.set(conversationId, wasObj);
     logger.debug(`sessionCreate: Session entry created for ${conversationId}: ` + JSON.stringify(wasObj));
     return wasObj;
 }
 
-// async function with try-catch wrapper around Promise
-async function assistant_createSession (ibMessageObj) {
-    const conversationId = ibMessageObj['conversationId'];
+// async function when called from another async fuction should block
+// until its result is ready e.g. promise yields resolve or reject
+async function assistant_createSession (conversationId, fromAddress) {
     logger.debug(`assistant_createSession: Session creation requested for conversation ${conversationId}`);
     await IWA_assistantV2.createSession( { assistantId: IWA_assistantId } )
     .then(async (res) => {
         const session_id     = res.result.session_id;
         sessionCreate(conversationId, {
             'session_id' : session_id,
-            'fromAddress': ibMessageObj['from']
+            'fromAddress': fromAddress
         });
         logger.debug(`assistant_createSession: Session ${session_id} created for conversation ${conversationId}\n`+
             `Watson createSession Response: ` + JSON.stringify(res.result));
@@ -101,6 +107,21 @@ async function assistant_createSession (ibMessageObj) {
     return sessionExtendExpiry(conversationId);    
 }
 
+async function assistant_deleteSession (conversationId, session_id) {
+    logger.debug(`assistant_deleteSession: Session deletion requested for conversation ${conversationId}`);
+    if (! session_id) { was = sessionLookup(conversationId); session_id = was.session_id }
+    await IWA_assistantV2.deleteSession( { assistantId: IWA_assistantId, sessionId: session_id } )
+    .then(async (res) => {
+        sessionTerminate(conversationId);
+        logger.debug(`assistant_deleteSession: Session ${session_id} deleted for conversation ${conversationId}\n`+
+            `Watson deleteSession Response: ` + JSON.stringify(res.result));
+    })
+    .catch((err) => {
+        logger.error(`Failed in assistant_deleteSession() for conversation ${conversationId} / session ${session_id}: `, err);
+        throw(Error(err));
+    });
+}
+
 // sends a message over already created session and collect the response
 async function assistant_exchangeMessage (ibMessageObj, textMsg) {
     const conversationId = ibMessageObj['conversationId']; 
@@ -108,7 +129,7 @@ async function assistant_exchangeMessage (ibMessageObj, textMsg) {
     var was = sessionLookup(conversationId);
     var result;
     if (! was) {
-        was = await assistant_createSession(ibMessageObj);
+        was = await assistant_createSession(conversationId, ibMessageObj.from);
     }
     logger.debug(`got session object: ` + ( was ? JSON.stringify(was) : 'null'));
     if (! was) {
@@ -119,7 +140,7 @@ async function assistant_exchangeMessage (ibMessageObj, textMsg) {
     await IWA_assistantV2.message({
         assistantId: IWA_assistantId,
         sessionId:   was.session_id,
-        input:     { text: textMsg },
+        input:     { message_type: 'text', text: textMsg },
     })
     .then(async (res) => {
         logger.info(`Assistant Response\n`+ JSON.stringify(res.result, null, 2));
@@ -192,7 +213,8 @@ function wat_button_widget(genericItem) {
 // exports.sessionCreate = sessionCreate;
 exports.sessionLookup = sessionLookup;
 exports.sessionTerminate = sessionTerminate;
-// exports.assistant_createSession = assistant_createSession;
+exports.assistant_createSession = assistant_createSession;
+exports.assistant_deleteSession = assistant_deleteSession;
 exports.assistant_exchangeMessage = assistant_exchangeMessage;
 //
 exports.wat_serialize_options = wat_serialize_options

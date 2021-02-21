@@ -14,6 +14,8 @@
     "IWA_apiVersion": "2020-04-01",
     "IWA_sessionTimeout": 300,
 
+    "SDB_file": "/var/www/vnode/psdev-awb-chatbot-proxy/sessionsDB.json",
+
     "BIP_AccountId": "{{accountId}}",
     "BIP_AccountName": "Infobip Morocco",
     "BIP_serviceURL": "https://api.infobip.com",

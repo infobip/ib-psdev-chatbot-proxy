@@ -489,10 +489,11 @@ app.post('/', async (xRequest, xResponse) => {
         else {
             logger.error(`Tagging and routing of conversationId: ${conversationId} was unsuccessful!`);
         }
+        // TODO: schedule session cleanup from the SDB
     }
 
     if (Step.STOP == nextStep) {
-        sessionTerminate(conversationId);
+        assistant_deleteSession(conversationId);
         logger.info(`For conversationId: ${conversationId} session terminated on STOP keyword.`);
     }
 
