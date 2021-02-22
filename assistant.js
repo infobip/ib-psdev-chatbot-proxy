@@ -169,7 +169,8 @@ async function assistant_exchangeMessage (ibMessageObj, textMsg) {
         input:     { message_type: 'text', text: textMsg },
     })
     .then(async (res) => {
-        logger.info(`Assistant Response\n`+ JSON.stringify(res.result, null, 2));
+        // logger.info(`Assistant Response\n`+ JSON.stringify(res.result, null, 2));
+        logger.info(`Assistant Full Result\n`+ JSON.stringify(res, null, 2));
         // TODO: perform some checks here
         result = res.result;
     })

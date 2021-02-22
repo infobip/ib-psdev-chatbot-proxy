@@ -10,3 +10,4 @@ package-lock.json
 tinker*.js
 *~
 .*~
+sessionsDB.json
