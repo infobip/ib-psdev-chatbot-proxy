@@ -133,7 +133,7 @@ async function assistant_createSession (conversationId, fromAddress) {
 
 async function assistant_deleteSession (conversationId, session_id) {
     logger.debug(`assistant_deleteSession: Session deletion requested for conversation ${conversationId}`);
-    if (! session_id) { var was = sessionLookup(conversationId); session_id = was.session_id }
+    if (! session_id) { var was = await sessionLookup(conversationId); session_id = was.session_id }
     await IWA_assistantV2.deleteSession( { assistantId: IWA_assistantId, sessionId: session_id } )
     .then(async (res) => {
         sessionTerminate(conversationId);

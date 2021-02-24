@@ -95,7 +95,7 @@ function convPostMessageTextSingle(xResponse, ibMessageObj) {
     var conversationId = ibMessageObj['conversationId']; 
     var post_url;
     post_url = config.get('BIP_serviceURL')+"/ccaas/1/conversations/"+conversationId+"/messages";
-    logger.debug(xResponse.locals.flowControlId + ` Preparing the POST call to: ${post_url}`);
+    logger.debug(xResponse.locals.flowControlId+` Preparing the POST call to: ${post_url}`);
 
     // when troubleshooting (use a new webhook.site inbox)
     if (debugLevel) {
@@ -103,12 +103,12 @@ function convPostMessageTextSingle(xResponse, ibMessageObj) {
         delete(bipHeadersPostMsg['Authorization']);
     } // debug
 
-    logger.debug(xResponse.locals.flowControlId + ` Performing the POST call to: ${post_url}`);
+    logger.debug(xResponse.locals.flowControlId+` Performing the POST call to: ${post_url}`);
    
     // const response = 
     axios.post(post_url, ibMessageObj, {'headers': bipHeadersPostMsg})
     .then((res) => {
-        logger.debug(xResponse.locals.flowControlId + ` POST->message result status: ` + res.status);
+        logger.debug(xResponse.locals.flowControlId+` POST->message result status: ` + res.status);
         return true;
     })
     .catch((err) => {
@@ -130,11 +130,11 @@ async function convPostMessageMany(xResponse, conversationId, channel, replyScen
     bipHeadersPostMsg['x-agent-id'] = botIdforChannel(channel);
     bipHeadersPostMsg['Content-Type'] = 'application/json';
 
-    logger.info("Reply scenario with " + replyScenario.length + " parts prepared for delivery");
+    logger.info(xResponse.locals.flowControlId+" Reply scenario with " + replyScenario.length + " parts prepared for delivery");
 
     var post_url;
     post_url = config.get('BIP_serviceURL')+"/ccaas/1/conversations/"+conversationId+"/messages";
-    logger.debug(xResponse.locals.flowControlId + ` Preparing the POST call to: ${post_url}`);
+    logger.debug(xResponse.locals.flowControlId+` Preparing the POST call to: ${post_url}`);
 
     // when troubleshooting (use a new webhook.site inbox)
     if (debugLevel) {
@@ -142,19 +142,19 @@ async function convPostMessageMany(xResponse, conversationId, channel, replyScen
         delete(bipHeadersPostMsg['Authorization']);
     } // debug
 
-    logger.debug(xResponse.locals.flowControlId + ` Performing the POST call to: ${post_url}`);
+    logger.debug(xResponse.locals.flowControlId+` Performing the POST call to: ${post_url}`);
    
     var noErrorHappened = true;
     var itemSeqNo = 0;
     for await (const replyItem of replyScenario) {
         itemSeqNo++;
-        logger.debug(xResponse.locals.flowControlId + ` Handling reply scenarion item ${itemSeqNo}: ` + JSON.stringify(replyItem));
+        logger.debug(xResponse.locals.flowControlId+` Handling reply scenarion item ${itemSeqNo}: ` + JSON.stringify(replyItem));
         if (Step.REPLY == replyItem.step) {
             const ibMessageObj = replyItem.reply;
             try {
-                logger.debug(xResponse.locals.flowControlId + ` attemptint to POST->message(...)`);
+                logger.debug(xResponse.locals.flowControlId+` attemptint to POST->message(...)`);
                 const response = await axios.post(post_url, ibMessageObj, {'headers': bipHeadersPostMsg});
-                logger.debug(xResponse.locals.flowControlId + ` POST->message(...) result status: ` + response.status);
+                logger.debug(xResponse.locals.flowControlId+` POST->message(...) result status: ` + response.status);
             }
             catch (err) {
                 noErrorHappened = false;
@@ -170,12 +170,12 @@ async function convPostMessageMany(xResponse, conversationId, channel, replyScen
         }
         if (Step.PAUSE == replyItem.step) {
             const ms = replyItem.pause;
-            logger.debug(xResponse.locals.flowControlId + ` Pausing for ${ms} ms`);
+            logger.debug(xResponse.locals.flowControlId+` Pausing for ${ms} ms`);
             await sleep(ms);
         }
     }
     if (noErrorHappened) {
-        logger.debug(xResponse.locals.flowControlId + ` reply scenario finished`);
+        logger.debug(xResponse.locals.flowControlId+` reply scenario finished`);
     }
     return noErrorHappened;
 }
@@ -189,7 +189,7 @@ async function convRouteConv(xResponse, conversationId, tagsArray) {
 
     var post_url; // we reuse this var for /tags and /route URLs
     post_url = config.get('BIP_serviceURL')+"/ccaas/1/conversations/"+conversationId+"/tags";
-    logger.debug(xResponse.locals.flowControlId + ` Preparing the POST call(s) to: ${post_url}`);
+    logger.debug(xResponse.locals.flowControlId+` Preparing the POST call(s) to: ${post_url}`);
 
     // when troubleshooting (use a new webhook.site inbox)
     if (debugLevel) {
@@ -200,9 +200,9 @@ async function convRouteConv(xResponse, conversationId, tagsArray) {
     var noErrorHappened = true;
     for await (const tagName of tagsArray) {
             try {
-            logger.debug(xResponse.locals.flowControlId + ` attemptint to POST->tags(${tagName})`);
+            logger.debug(xResponse.locals.flowControlId+` attemptint to POST->tags(${tagName})`);
             const response = await axios.post(post_url, {'tagName': tagName} , {'headers': bipHeadersPost});
-            logger.debug(xResponse.locals.flowControlId + ` POST->tags(${tagName}) result status: ` + response.status);
+            logger.debug(xResponse.locals.flowControlId+` POST->tags(${tagName}) result status: ` + response.status);
         }
         catch (err) {
             noErrorHappened = false;
@@ -221,9 +221,9 @@ async function convRouteConv(xResponse, conversationId, tagsArray) {
     if (noErrorHappened) {
         try {
             post_url = post_url.replace(/\/tags$/, '/route');
-            logger.debug(xResponse.locals.flowControlId + ` attemptint to POST->route call to: ${post_url}`);
+            logger.debug(xResponse.locals.flowControlId+` attemptint to POST->route call to: ${post_url}`);
             const response = await axios.post(post_url, {}, {'headers': bipHeadersPost});
-            logger.debug(xResponse.locals.flowControlId + ` POST->route result status: ` + response.status);
+            logger.debug(xResponse.locals.flowControlId+` POST->route result status: ` + response.status);
         }
         catch (err) {
             noErrorHappened = false;
@@ -273,16 +273,18 @@ const initMain = async () => {
         console.error(err);
         logger.error(`Application ${appName} startup failure: `, err);
     }
+
+    // TODO: schedule session cleanup from the SDB
+    // TODO: schedule pings to Watson Assistant (and rate limit checking)
 };
 
-// this is just initialization of the express app objects
+// ** app.() stuff is just initialization of the express app objects **
 
 // express to assign unique flow tracking identifier to each request
 app.use(flowcontrol({includeDate: true, randLength: 8}));
 
 // express should give us instantiated JSON objects
 app.use(express.json());
-
 
 app.get('/', (req, res) => {
     var ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
@@ -293,12 +295,11 @@ app.get('/', (req, res) => {
     res.send(`Hello client connecting from ${ip}, this is "${appName}", up since ${appStartupTime}, reporting at ${tstmp}`);
 })
 
-
 // main handler of POST / requests
 app.post('/', async (xRequest, xResponse) => {
     var ip = xRequest.headers['x-forwarded-for'] || req.socket.remoteAddress;    
-    logger.info(`Received POST / request from client at ${ip} flow control Id: ` + xResponse.locals.flowControlId);
-    logger.debug("POST request ["+xResponse.locals.flowControlId+"] received with data:\n" + JSON.stringify(xRequest.body, null, 2));
+    logger.info(`Received POST / request from client at ${ip} flow control Id: `+xResponse.locals.flowControlId);
+    logger.debug("POST request ["+xResponse.locals.flowControlId+"] received with data:\n"+JSON.stringify(xRequest.body, null, 2));
 
     // CCaaS API for external bots does not require any reply for forwarded messages
     xResponse.send("");      // send back empty response, with status 200 = OK
@@ -321,10 +322,10 @@ app.post('/', async (xRequest, xResponse) => {
 
     // first check if the keyword is provided and if this is the only word
     if (inboundTextMsg.match(RE_SWA_KWord)) {
-        logger.info(`Registered keyword '${SWA_KWord}' received on ${existingOrNew} conversationId: ${conversationId}`);
+        logger.info(xResponse.locals.flowControlId+` Registered keyword '${SWA_KWord}' received on ${existingOrNew} conversationId: ${conversationId}`);
         inboundTextMsg = inboundTextMsg.replace(RE_SWA_KWord, '');
         if (inboundTextMsg.length == 0) {
-            logger.info(`  ... as it is the only word received, responding with session status message`);
+            logger.info(xResponse.locals.flowControlId+`  ... as it is the only word received, responding with session status message`);
             if (was) {
                 forwardTextMsg = `This conversation is connected to Watson Assistant via ${appName} already.\n`
                 + `Infobip ConversationId=${conversationId}\n`;
@@ -338,21 +339,21 @@ app.post('/', async (xRequest, xResponse) => {
     }
 
     if (inboundTextMsg.toUpperCase() == "STOP") {
-        logger.info(`STOP received on ${existingOrNew} conversationId: ${conversationId}`);
+        logger.info(xResponse.locals.flowControlId+` STOP received on ${existingOrNew} conversationId: ${conversationId}`);
         conversationAborted = true;
         if (was) sessionTerminate(rb['conversationId']);
         forwardTextMsg = `Chatbot Proxy has terminated this session with Virtual Assistant on your request.`
         nextStep = Step.STOP;
     }
     else if (inboundTextMsg.toUpperCase() == "LOOPTEST" || inboundTextMsg.match(RE_SWA_KWord)) {
-        logger.info(`LOOPTEST or KEYWORD received on this conversationId: ${conversationId}`);
+        logger.info(xResponse.locals.flowControlId+` LOOPTEST or KEYWORD received on this conversationId: ${conversationId}`);
         // respond with internally generated response message (loopback testing)
         var tstmp = current_timestamp();
         forwardTextMsg = `Hello this is "${appName}", I have received your '${inboundTextMsg}' at ${tstmp}.\nThis is an automated loopback response.`;
         nextStep = Step.REPLY;
     }
     else {
-        logger.debug(`Regular message received on ${existingOrNew} conversationId: ${conversationId}`);
+        logger.info(xResponse.locals.flowControlId+` Regular message received on ${existingOrNew} conversationId: ${conversationId}`);
         nextStep = Step.WATSON;
     }
 
@@ -484,12 +485,11 @@ app.post('/', async (xRequest, xResponse) => {
 
     if (Step.ROUTE == nextStep) {
         if (await convRouteConv(xResponse, conversationId, ['routingInfo'])) {
-            logger.info(`Tagging and routing of conversationId: ${conversationId} was successful.`);
+            logger.info(xResponse.locals.flowControlId+` Tagging and routing of conversationId: ${conversationId} was successful.`);
         }
         else {
-            logger.error(`Tagging and routing of conversationId: ${conversationId} was unsuccessful!`);
+            logger.error(xResponse.locals.flowControlId+` Tagging and routing of conversationId: ${conversationId} was unsuccessful!`);
         }
-        // TODO: schedule session cleanup from the SDB
     }
 
     if (Step.STOP == nextStep) {
@@ -497,6 +497,7 @@ app.post('/', async (xRequest, xResponse) => {
         logger.info(`For conversationId: ${conversationId} session terminated on STOP keyword.`);
     }
 
+    logger.info(xResponse.locals.flowControlId+' Done processing POST / request.');
 });
 
 initMain();
