@@ -159,7 +159,7 @@ async function assistant_exchangeMessage (ibMessageObj, textMsg) {
     }
     logger.debug(`got session object: ${was} = ` + ( was ? JSON.stringify(was) : 'null'));
     if (! (was && was.hasOwnProperty('session_id'))) {
-        logger.debug(`cannot send witout a session`);
+        logger.debug(`cannot send without a session`);
         return;
     }
     // send message to 

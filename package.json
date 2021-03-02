@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/infobip/psdev-awb-chatbot-proxy.git"
   },
-  "author": "Damir Dzeko Antic <damir.dzekoantic@infobip.com>>",
+  "author": "Damir Dzeko Antic <damir.dzekoantic@infobip.com>",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
