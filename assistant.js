@@ -192,7 +192,12 @@ function wat_serialize_options(genericItem) {
         for (const key in options_in) {
             if (options_in[key].hasOwnProperty('label')) {
                 var oneopt = options_in[key];
-                options_out.push(oneopt['label'] + " (entrer: " + oneopt['value'].input.text + ")");
+                var opt_label = oneopt['label'];
+                var opt_input_suggest = oneopt['value'].input.text;
+                opt_label = opt_label.replace(/\s+/g, ' ').replace(/^\s*|\s*$/g, '');
+                opt_input_suggest = input_suggest.replace(/\s+/g, ' ').replace(/^\s*|\s*$/g, '');
+                // FIXME: this is AWB-specific (French)
+                options_out.push(`${opt_label} (entrer: ${opt_input_suggest})`);
             }
             else {
                 options_out.push(JSON.stringify()); // fallback
