@@ -1,4 +1,4 @@
-# psdev-awb-chatbot-proxy
+# ib-psdev-chatbot-proxy
 Started as Infobip PSDev project for AWB, resulted with a generalized External Chatbot Proxy Middleware for Infobip Conversations, running on Node.js
 
 ## Prerequisites
