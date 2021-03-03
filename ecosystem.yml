@@ -1,17 +1,17 @@
 apps:
-  - script: psdev-awb-chatbot-proxy/proxy.js
+  - script: src/proxy.js
     name: "awb-chatbot-proxy"
     env_development:
       NODE_ENV: development
       NODE_APP_NAME: AWB-ChatBot-DEV
       NODE_PORT: 3101
       NODE_HOST: localhost
-      NODE_CONFIG_DIR: psdev-awb-chatbot-proxy/config
+      NODE_CONFIG_DIR: config
       SOME_VAR: somevar-dev
     env_production:
       NODE_ENV: production
       NODE_APP_NAME: AWB-ChatBot-PROD      
       NODE_PORT: 3102
       NODE_HOST: localhost
-      NODE_CONFIG_DIR: psdev-awb-chatbot-proxy/config
+      NODE_CONFIG_DIR: config
       SOME_VAR: somevar-prod

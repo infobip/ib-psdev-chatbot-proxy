@@ -13,7 +13,7 @@ const AssistantV2 = require("ibm-watson/assistant/v2");
 const { IamAuthenticator } = require("ibm-watson/auth");
 
 // Secret Keys sourced from environment (CodeSandbox.io)
-const IWA_apiKey = process.env.IWA_apiKey;
+const IWA_apiKey = process.env.IWA_apiKey || config.get("IWA_apiKey");;
 
 // IBM Watson Assistant objects init.
 const IWA_assistantId = config.get("IWA_assistantId");

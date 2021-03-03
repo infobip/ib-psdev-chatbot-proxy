@@ -95,7 +95,7 @@ const logConfiguration = {
 const logger = winston.createLogger(logConfiguration);
 
 // Secret Keys sourced from environment (CodeSandbox.io)
-const BIP_authorization = process.env.BIP_authorization;
+const BIP_authorization = process.env.BIP_authorization || config.get("BIP_authorization");
 
 // prepare headers for IB API calls to CCaaS
 const bipHeaders = {
