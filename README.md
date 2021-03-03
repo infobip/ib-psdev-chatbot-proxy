@@ -1,5 +1,5 @@
 # psdev-awb-chatbot-proxy
-Infobip PSDev project for AWB titled Chatbot Proxy Middleware
+Started as Infobip PSDev project for AWB, resulted with a generalized External Chatbot Proxy Middleware for Infobip Conversations, running on Node.js
 
 ## Prerequisites
 - You should have deployed your IBM Watson Assistant (IWA) chatbot and configured a dialog skill
