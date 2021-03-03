@@ -1,6 +1,6 @@
 apps:
   - script: src/proxy.js
-    name: "ip-chatbot-proxy"
+    name: "ib-chatbot-proxy"
     env_development:
       NODE_ENV: development
       NODE_APP_NAME: AWB-ChatBot-DEV
